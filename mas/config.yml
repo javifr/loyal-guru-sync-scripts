@@ -1,0 +1,5 @@
+output_folder_headers: "./output_headers/"
+output_folder_lines: "./output_lines/"
+input_folder: "./input/"
+# launch hour (24H)
+launch_hour: 9
