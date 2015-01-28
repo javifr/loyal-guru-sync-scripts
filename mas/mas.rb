@@ -84,7 +84,7 @@ class Creator
 
   def create_csv()
     f = File.open(@input_file, "r")
-    headers = []
+    tickets = []
     lines = []
     last_id = 0
     f.each_line do |line|
@@ -96,9 +96,9 @@ class Creator
       #   csv << @definitions[:rules].map{ |w| line_parsed[w[:name]] }
       # end
 
-      if type == :header
+      if type == :ticket
         last_id = line_parsed[:code]
-        headers << CSV.generate_line(line_parsed.values, { col_sep: ';' })
+        tickets << CSV.generate_line(line_parsed.values, { col_sep: ';' })
       else
         line_parsed[:activity_code] = last_id
         lines << CSV.generate_line(line_parsed.values, { col_sep: ';' })
@@ -108,14 +108,14 @@ class Creator
 
     f.close
 
-    { headers: headers, lines: lines }
+    { tickets: tickets, lines: lines }
   end
 
   def line_type(line)
     if line[0] == 'L'
       :line
     else
-      :header
+      :ticket
     end
   end
 end
@@ -123,7 +123,7 @@ end
 
 definitions = [
   {
-    type: :header,
+    type: :ticket,
     rules:
     [
       {
@@ -211,10 +211,10 @@ while true do
     puts "launching..."
     last_launch = Date.today.to_s
     timestamp = Time.now.strftime('%Y%m%d-%H%M%S')
-    headers_file = File.open("#{config["output_folder_headers"]}all_header_#{timestamp}.csv", "wb")
+    tickets_file = File.open("#{config["output_folder_tickets"]}all_ticket_#{timestamp}.csv", "wb")
     lines_file = File.open("#{config["output_folder_lines"]}all_line_#{timestamp}.csv", "wb")
 
-    headers_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :header }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
+    tickets_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :ticket }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
     lines_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :line }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
 
     Dir.foreach(config["input_folder"]) do |item|
@@ -222,7 +222,7 @@ while true do
 
         output = Creator.new(definitions, "#{config["input_folder"]}#{item}").create_csv
 
-        headers_file << output[:headers].join
+        tickets_file << output[:tickets].join
         lines_file << output[:lines].join
 
         File.delete("#{config["input_folder"]}#{item}")
