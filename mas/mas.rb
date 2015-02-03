@@ -150,7 +150,7 @@ definitions = [
         filter: :date_join
       },
       {
-        cut:[[1,2],[13,15]],
+        cut:[[13,15]],
         name: :staff_code,
       },
       {
