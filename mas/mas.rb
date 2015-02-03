@@ -111,7 +111,7 @@ class Creator
         end
         line_parsed[:activity_code] = last_id
         lines << CSV.generate_line(line_parsed.values, { col_sep: ';' })
-        order =+ 1
+        order += 1
       end
 
     end
