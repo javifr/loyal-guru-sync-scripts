@@ -101,6 +101,12 @@ class Creator
         tickets << CSV.generate_line(line_parsed.values, { col_sep: ';' })
       else
         line_parsed[:activity_code] = last_id
+        # if quantity or weight are negatives put the total in negative if it
+        # isn't yet
+        if line_parsed[:weight] < 0 || line_parsed[:quantity] < 0 && line_parsed[:total] > 0
+          line_parsed[:total] = 0 - line_parsed[:total]
+        end
+        line_parsed[:activity_code] = last_id
         lines << CSV.generate_line(line_parsed.values, { col_sep: ';' })
       end
 
