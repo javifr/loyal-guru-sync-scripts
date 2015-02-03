@@ -87,6 +87,7 @@ class Creator
     tickets = []
     lines = []
     last_id = 0
+    order = 1
     f.each_line do |line|
       type = line_type(line)
       definition = @definitions.select { |defin| defin[:type] == type }.first
@@ -99,8 +100,10 @@ class Creator
       if type == :ticket
         last_id = line_parsed[:code]
         tickets << CSV.generate_line(line_parsed.values, { col_sep: ';' })
+        order = 1
       else
         line_parsed[:activity_code] = last_id
+        line_parsed[:order] = order
         # if quantity or weight are negatives put the total in negative if it
         # isn't yet
         if line_parsed[:weight] < 0 || line_parsed[:quantity] < 0 && line_parsed[:total] > 0
@@ -108,6 +111,7 @@ class Creator
         end
         line_parsed[:activity_code] = last_id
         lines << CSV.generate_line(line_parsed.values, { col_sep: ';' })
+        order =+ 1
       end
 
     end
@@ -173,6 +177,10 @@ definitions = [
   {
     type: :line,
     rules: [
+      {
+        cut: [[1, 2]],
+        name: :order
+      },
       {
         cut: [[81, 93], [4,8], [2,3], [14,15]],
         name: :activity_code,
