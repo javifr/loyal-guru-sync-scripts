@@ -243,6 +243,8 @@ while true do
 
       end
     end
+    tickets_file.close
+    lines_file.close
     puts "Done"
   end
 
