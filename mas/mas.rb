@@ -217,36 +217,26 @@ definitions = [
   }
 ]
 
-last_launch = 0
+timestamp = Time.now.strftime('%Y%m%d-%H%M%S')
+tickets_file = File.open("#{config["output_folder_tickets"]}all_ticket_#{timestamp}.csv", "wb")
+lines_file = File.open("#{config["output_folder_lines"]}all_line_#{timestamp}.csv", "wb")
 
-while true do
-  puts "waiting... last launch #{last_launch} next launch hour #{config["launch_hour"].to_s}"
-  if Time.now.hour == config["launch_hour"] && last_launch != Date.today.to_s
-    puts "launching..."
-    last_launch = Date.today.to_s
-    timestamp = Time.now.strftime('%Y%m%d-%H%M%S')
-    tickets_file = File.open("#{config["output_folder_tickets"]}all_ticket_#{timestamp}.csv", "wb")
-    lines_file = File.open("#{config["output_folder_lines"]}all_line_#{timestamp}.csv", "wb")
+tickets_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :ticket }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
+lines_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :line }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
 
-    tickets_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :ticket }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
-    lines_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :line }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
+Dir.foreach(config["input_folder"]) do |item|
+  if item.split(".")[1] == "DAT" || item.split(".")[1] == "dat"
 
-    Dir.foreach(config["input_folder"]) do |item|
-      if item.split(".")[1] == "DAT" || item.split(".")[1] == "dat"
+    output = Creator.new(definitions, "#{config["input_folder"]}#{item}").create_csv
 
-        output = Creator.new(definitions, "#{config["input_folder"]}#{item}").create_csv
+    tickets_file << output[:tickets].join
+    lines_file << output[:lines].join
 
-        tickets_file << output[:tickets].join
-        lines_file << output[:lines].join
+    File.delete("#{config["input_folder"]}#{item}")
 
-        File.delete("#{config["input_folder"]}#{item}")
-
-      end
-    end
-    tickets_file.close
-    lines_file.close
-    puts "Done"
   end
-
-  sleep 10
 end
+tickets_file.close
+lines_file.close
+
+puts 'done'
