@@ -3,9 +3,9 @@ require 'yaml'
 require 'date'
 
 if ARGV[0]
-    config = YAML.load_file(ARGV[0])
+  config = YAML.load_file(ARGV[0])
 else
-    config = YAML.load_file('config.yml')
+  config = YAML.load_file('config.yml')
 end
 
 class Parser
@@ -217,26 +217,30 @@ definitions = [
   }
 ]
 
-timestamp = Time.now.strftime('%Y%m%d-%H%M%S')
-tickets_file = File.open("#{config["output_folder_tickets"]}all_ticket_#{timestamp}.csv", "wb")
-lines_file = File.open("#{config["output_folder_lines"]}all_line_#{timestamp}.csv", "wb")
-
-tickets_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :ticket }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
-lines_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :line }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
-
-Dir.foreach(config["input_folder"]) do |item|
-  if item.split(".")[1] == "DAT" || item.split(".")[1] == "dat"
-
-    output = Creator.new(definitions, "#{config["input_folder"]}#{item}").create_csv
-
-    tickets_file << output[:tickets].join
-    lines_file << output[:lines].join
-
-    File.delete("#{config["input_folder"]}#{item}")
-
+if Dir.glob(config["input_folder"]} + "/*").size > 0
+  timestamp = Time.now.strftime('%Y%m%d-%H%M%S')
+  tickets_file = File.open("#{config["output_folder_tickets"]}all_ticket_#{timestamp}.csv", "wb")
+  lines_file = File.open("#{config["output_folder_lines"]}all_line_#{timestamp}.csv", "wb")
+  
+  tickets_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :ticket }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
+  lines_file << CSV.generate_line(definitions.select { |definition| definition[:type] == :line }.first[:rules].map { |rule| rule[:name] }, { col_sep: ';' })
+  
+  Dir.foreach(config["input_folder"]) do |item|
+    if item.split(".")[1] == "DAT" || item.split(".")[1] == "dat"
+  
+      output = Creator.new(definitions, "#{config["input_folder"]}#{item}").create_csv
+  
+      tickets_file << output[:tickets].join
+      lines_file << output[:lines].join
+  
+      File.delete("#{config["input_folder"]}#{item}")
+  
+    end
   end
+  tickets_file.close
+  lines_file.close
+  
+  puts 'done'
+else
+  puts 'no files'
 end
-tickets_file.close
-lines_file.close
-
-puts 'done'
