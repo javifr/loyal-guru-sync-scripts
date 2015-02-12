@@ -217,7 +217,7 @@ definitions = [
   }
 ]
 
-if Dir.glob(config["input_folder"] + "*").size > 0
+if Dir.glob(config["input_folder"].gsub("\\", "/") + "*").size > 0
   timestamp = Time.now.strftime('%Y%m%d-%H%M%S')
   tickets_file = File.open("#{config["output_folder_tickets"]}all_ticket_#{timestamp}.csv", "wb")
   lines_file = File.open("#{config["output_folder_lines"]}all_line_#{timestamp}.csv", "wb")

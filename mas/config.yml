@@ -1,5 +1,5 @@
-output_folder_tickets: "./output_tickets/"
-output_folder_lines: "./output_lines/"
-input_folder: "./input/"
+output_folder_tickets: 'C:\Mas\output_tickets\'
+output_folder_lines: 'C:\Mas\output_lines\'
+input_folder: 'C:\Mas\input\'
 # launch hour (24H)
-launch_hour: 10
+launch_hour: 13
