@@ -67,6 +67,37 @@ class Filters
     string
   end
 
+  def ean(twelve)
+
+    twelve = twelve.to_s
+    twelve = clear(twelve)
+    fecha = twelve[0...6]
+    twelve = twelve[6..17] 
+    
+    return nil unless twelve.length == 12 && twelve.match(/\d{11}/)
+
+    arr = (0..11).to_a.collect do |i|
+      if (i+1).even?
+        twelve[i,1].to_i * 3
+      else
+        twelve[i,1].to_i
+      end
+    end
+
+    sum = arr.inject { |sum, n| sum + n }
+
+    remainder = sum % 10
+
+    if remainder == 0
+      check = 0
+    else
+      check = 10 - remainder
+    end
+
+    fecha + twelve + check.to_s
+
+  end
+
   def change_value(string)
     if string == '16'
       false
@@ -96,22 +127,27 @@ class Creator
       # unless ["80", "81"].include? line[20..22]
       #   csv << @definitions[:rules].map{ |w| line_parsed[w[:name]] }
       # end
-
-      if type == :ticket
-        last_id = line_parsed[:code]
-        tickets << CSV.generate_line(line_parsed.values, { col_sep: ';' })
-        order = 1
+      if line[23] == '2' && type == :ticket
+        last_id = 'saltar_linia'
       else
-        line_parsed[:activity_code] = last_id
-        line_parsed[:order] = order
-        # if quantity or weight are negatives put the total in negative if it
-        # isn't yet
-        if (line_parsed[:weight] < 0 || line_parsed[:quantity] < 0) && line_parsed[:total] > 0
-          line_parsed[:total] = 0 - line_parsed[:total]
+        if type == :ticket
+          last_id = line_parsed[:code]
+          tickets << CSV.generate_line(line_parsed.values, { col_sep: ';' })
+          order = 1
+        else
+          if last_id != 'saltar_linia'
+            line_parsed[:activity_code] = last_id
+            line_parsed[:order] = order
+            # if quantity or weight are negatives put the total in negative if it
+            # isn't yet
+            if (line_parsed[:weight] < 0 || line_parsed[:quantity] < 0) && line_parsed[:total] > 0
+              line_parsed[:total] = 0 - line_parsed[:total]
+            end
+            line_parsed[:activity_code] = last_id
+            lines << CSV.generate_line(line_parsed.values, { col_sep: ';' })
+            order += 1
+          end
         end
-        line_parsed[:activity_code] = last_id
-        lines << CSV.generate_line(line_parsed.values, { col_sep: ';' })
-        order += 1
       end
 
     end
@@ -141,34 +177,34 @@ definitions = [
         name: :location_code,
         filter: :int
       }, {
-        cut:[[42,49]],
+        cut:[[43,50]],
         name: :total,
         filter: :float
       }, {
-        cut:[[29,41]],
+        cut:[[30,42]],
         name: :creation_date,
         filter: :date_join
       },
       {
-        cut:[[13,15]],
+        cut:[[14,16]],
         name: :staff_code,
       },
       {
-        cut: [[29, 30], [32, 33], [35, 36], [1, 2], [4, 8], [42, 49]], # fecha ddmmaa location_code ticket_number total
+        cut: [[30, 31], [33, 34], [36, 37], [1, 2], [53, 57], [46, 50]], # fecha ddmmaa location_code ticket_number total
         name: :code,
-        filter: :clear
+        filter: :ean
       },
       {
-        cut:[[24,28]],
+        cut:[[25,29]],
         name: :customer_code
       },
       {
-        cut: [[50,50]],
+        cut: [[51,51]],
         name: :custom1,
         filter: :int # tipo de pago
       },
       {
-        cut: [[21, 22]],
+        cut: [[22, 23]],
         name: :returned,
         filter: :change_value
       }
@@ -182,25 +218,25 @@ definitions = [
         name: :order
       },
       {
-        cut: [[81, 93], [4,8], [2,3], [14,15]],
+        cut: [[82, 94], [2,3], [96,101], [15,16]],
         name: :activity_code,
         filter: :clear
       }, {
-        cut: [[50, 55]],
+        cut: [[51, 56]],
         name: :product_code
       },
       {
-        cut: [[19,25]],
+        cut: [[20,26]],
         name: :weight,
         filter: :int
       },
       {
-        cut: [[26,32]],
+        cut: [[27,33]],
         name: :quantity,
         filter: :int
       },
       {
-        cut: [[33, 40]],
+        cut: [[34, 41]],
         name: :price,
         filter: :float
       },
@@ -210,7 +246,7 @@ definitions = [
         filter: :float
       },
       {
-        cut: [[56, 80]],
+        cut: [[57, 81]],
         name: :description
       }
     ]
