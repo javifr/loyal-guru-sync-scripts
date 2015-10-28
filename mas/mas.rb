@@ -127,7 +127,7 @@ class Creator
       # unless ["80", "81"].include? line[20..22]
       #   csv << @definitions[:rules].map{ |w| line_parsed[w[:name]] }
       # end
-      if (line[23] == '2' || line[18] =='0') && type == :ticket
+      if (line[23] == '2' || (line[17] =='0' && line[18] =='0')) && type == :ticket
         last_id = 'saltar_linia'
       else
         if type == :ticket
