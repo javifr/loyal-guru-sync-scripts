@@ -99,7 +99,7 @@ class Filters
   end
 
   def change_value(string)
-    if string == '16'
+    if ( string == '16' || string == '17' )
       false
     else
       true
